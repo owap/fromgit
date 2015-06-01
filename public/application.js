@@ -5,13 +5,13 @@ angular.module(ApplicationConfiguration.applicationModuleName, ApplicationConfig
 
 // Setting HTML5 Location Mode
 angular.module(ApplicationConfiguration.applicationModuleName).config(['$locationProvider',
-	function($locationProvider) {
-		$locationProvider.hashPrefix('!');
-	}
+    function($locationProvider) {
+        $locationProvider.hashPrefix('!');
+    }
 ]);
 
 //Then define the init function for starting up the application
 angular.element(document).ready(function() {
-	//Then init the app
-	angular.bootstrap(document, [ApplicationConfiguration.applicationModuleName]);
+    //Then init the app
+    angular.bootstrap(document, [ApplicationConfiguration.applicationModuleName]);
 });
