@@ -38,6 +38,7 @@
         "swig": "~1.4.2"
     },
     "devDependencies": {
+        "david": "latest",
         "grunt-concurrent": "~1.0.0",
         "grunt-contrib-csslint": "^0.4.0",
         "grunt-contrib-cssmin": "~0.12.3",
