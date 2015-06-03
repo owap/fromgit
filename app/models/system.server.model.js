@@ -4,8 +4,7 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    RepoSchema = mongoose.model('Repo');
+    Schema = mongoose.Schema;
 
 /**
  * System Schema
@@ -17,7 +16,22 @@ var SystemSchema = new Schema({
         required: 'Please fill System name',
         trim: true
     },
-    repos: [RepoSchema],
+    environments: [{
+        name: {
+            type: String,
+            default: '',
+            required: 'Please fill Environment name',
+            trim: true
+        },
+        repos: [{
+            url: {
+                type: String,
+                default: '',
+                required: 'Please fill Repository URL',
+                trim: true
+            }
+        }]
+    }],
     created: {
         type: Date,
         default: Date.now
