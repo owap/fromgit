@@ -7,6 +7,12 @@ var should = require('should'),
     mongoose = require('mongoose'),
     User = mongoose.model('User'),
     Repo = mongoose.model('Repo');
+    
+var Promise = require('bluebird');
+Promise.promisifyAll(User);
+Promise.promisifyAll(User.prototype);
+Promise.promisifyAll(Repo);
+Promise.promisifyAll(Repo.prototype);
 
 /**
  * Globals
@@ -24,7 +30,8 @@ describe('Repo Model Unit Tests:', function() {
             displayName: 'Full Name',
             email: 'test@test.com',
             username: 'username',
-            password: 'password'
+            password: 'password',
+            provider: 'local'
         });
 
         user.save(function() { 

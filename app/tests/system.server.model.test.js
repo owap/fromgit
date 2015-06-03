@@ -9,6 +9,14 @@ var should = require('should'),
     System = mongoose.model('System'),
     Repo = mongoose.model('Repo');
 
+var Promise = require('bluebird');
+Promise.promisifyAll(User);
+Promise.promisifyAll(User.prototype);
+Promise.promisifyAll(System);
+Promise.promisifyAll(System.prototype);
+Promise.promisifyAll(Repo);
+Promise.promisifyAll(Repo.prototype);
+
 /**
  * Globals
  */
@@ -25,15 +33,29 @@ describe('System Model Unit Tests:', function() {
             displayName: 'Full Name',
             email: 'test@test.com',
             username: 'username',
-            password: 'password'
+            password: 'password',
+            provider: 'local'
         });
 
-        user.save(function() {
+        user.saveAsync().then(function(){
+            repo = new Repo({
+                name: 'Repo Name',
+                url: 'http://test-url.com/repo',
+                user: user
+            });
+        })
+        .then(function(){
+            return repo.saveAsync();
+        })
+        .then(function() {
             system = new System({
                 name: 'System Name',
                 user: user
             });
-            done();
+        })
+        .then(done)
+        .catch(function(err, msg){
+            console.error('Failed to stand up System model unit tests:', err);
         });
     });
 
@@ -58,6 +80,7 @@ describe('System Model Unit Tests:', function() {
     afterEach(function(done) { 
         System.remove().exec();
         User.remove().exec();
+        Repo.remove().exec();
 
         done();
     });
