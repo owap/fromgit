@@ -43,8 +43,6 @@ describe('System Model Unit Tests:', function() {
                 url: 'http://test-url.com/repo',
                 user: user
             });
-        })
-        .then(function(){
             return repo.saveAsync();
         })
         .then(function() {
@@ -52,8 +50,7 @@ describe('System Model Unit Tests:', function() {
                 name: 'System Name',
                 user: user
             });
-        })
-        .then(done)
+        }).then(done)
         .catch(function(err, msg){
             console.error('Failed to stand up System model unit tests:', err);
         });
