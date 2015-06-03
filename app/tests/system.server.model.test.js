@@ -81,7 +81,7 @@ describe('System Model Unit Tests:', function() {
                 var environment = retrievedSystem.environments[0];
                 should.equal(environment.name, 'Test Environment');
                 var repo = environment.repos[0];
-                should.equal(repo.url, 'http://testURL')
+                should.equal(repo.url, 'http://testURL');
             }).then(done)
             .catch(function(err){
                 console.error('Error asserting System/Env/Repo association:', err);
