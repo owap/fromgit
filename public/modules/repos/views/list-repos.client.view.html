@@ -4,16 +4,16 @@
     </div>
     <div class="list-group">
         <a data-ng-repeat="repo in repos" data-ng-href="#!/repos/{{repo._id}}" class="list-group-item">
-			<small class="list-group-item-text">
-				Posted on
-				<span data-ng-bind="repo.created | date:'medium'"></span>
-				by
-				<span data-ng-bind="repo.user.displayName"></span>
-			</small>
-			<h4 class="list-group-item-heading" data-ng-bind="repo.name"></h4>
+            <small class="list-group-item-text">
+                Posted on
+                <span data-ng-bind="repo.created | date:'medium'"></span>
+                by
+                <span data-ng-bind="repo.user.displayName"></span>
+            </small>
+            <h4 class="list-group-item-heading" data-ng-bind="repo.name"></h4>
         </a>
     </div>
     <div class="alert alert-warning text-center" data-ng-hide="!repos.$resolved || repos.length">
-    	No Repos yet, why don't you <a href="/#!/repos/create">create one</a>?
+        No Repos yet, why don't you <a href="/#!/repos/create">create one</a>?
     </div>
 </section>
