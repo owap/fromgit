@@ -20,7 +20,9 @@ module.exports = function(app) {
     app.route('/auth/signout').get(users.signout);
 
     // Setting the github oauth routes
-    app.route('/auth/github').get(passport.authenticate('github'));
+    app.route('/auth/github').get(passport.authenticate('github',
+        { scope: ['user', 'read:org'] }
+    ));
     app.route('/auth/github/callback').get(users.oauthCallback('github'));
 
     // Finish by binding the user middleware

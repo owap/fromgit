@@ -7,6 +7,7 @@ var _ = require('lodash'),
     errorHandler = require('../errors.server.controller'),
     mongoose = require('mongoose'),
     passport = require('passport'),
+    rp = require('request-promise'),
     User = mongoose.model('User');
 
 /**
@@ -18,13 +19,12 @@ exports.signup = function(req, res) {
 
     // Init Variables
     var user = new User(req.body);
-    var message = null;
 
     // Add missing user fields
     user.provider = 'local';
     user.displayName = user.firstName + ' ' + user.lastName;
 
-    // Then save the user 
+    // Then save the user
     user.save(function(err) {
         if (err) {
             return res.status(400).send({
@@ -102,6 +102,24 @@ exports.oauthCallback = function(strategy) {
  */
 exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
     if (!req.user) {
+
+        // If the provider is Github, we must also fetch the user's organizations
+        var organizations = [];
+        if(providerUserProfile.provider === 'github') {
+            var orgUrl = providerUserProfile.providerData.organizations_url;
+            var accessToken = providerUserProfile.providerData.accessToken;
+            var orgRequestOptions = {
+                uri: orgUrl,
+                headers: {
+                    'User-Agent': 'fromgit',
+                    'Accept': 'application/vnd.github.moondragon+json',
+                    'Authorization': 'token ' + accessToken
+                }
+            };
+            rp.get(orgRequestOptions).then(console.dir).catch(console.error);
+            console.log('waiting for orgUrl data');
+        }
+
         // Define a search query fields
         var searchMainProviderIdentifierField = 'providerData.' + providerUserProfile.providerIdentifierField;
         var searchAdditionalProviderIdentifierField = 'additionalProvidersData.' + providerUserProfile.provider + '.' + providerUserProfile.providerIdentifierField;

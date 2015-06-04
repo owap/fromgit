@@ -9,6 +9,7 @@ Open-source, on-demand environments defined and built from your git repos
 On your development machine, export two environment variables:
     export NODE_ENV=development
     export GITHUB_ID=your_github_app_id
+    export GITHUB_SECRET=your_github_app_secret
 
 In order to retrieve your github application id, you must first create a fromgit
 application owned by your github user.  Take the following steps:
@@ -22,5 +23,5 @@ application owned by your github user.  Take the following steps:
 Running the application is simple:
     npm install
     grunt
-    
+
 Ensure you have an instance of `mongod` running on your localhost.
