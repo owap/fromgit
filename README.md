@@ -9,9 +9,8 @@ Open-source, on-demand environments defined and built from your git repos
 On your development machine, export two environment variables:
     export NODE_ENV=development
     export GITHUB_ID=your_github_app_id
-    export GITHUB_SECRET=your_github_app_secret_id
 
-In order to retrieve your github app id/secret, you must first create a fromgit
+In order to retrieve your github application id, you must first create a fromgit
 application owned by your github user.  Take the following steps:
 
 + Visit and sign into `https://github.com`
