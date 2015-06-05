@@ -278,8 +278,8 @@ describe('System CRUD tests', function() {
             return agent.post('/auth/signin').send(credentials).expect(200).endAsync();
         })
         .then(function(signinRes){
-            return agent.get('/systems/' + systemObj._id
-                           + '/environments/' + systemObj.environments[0].name)
+            return agent.get('/systems/' + systemObj._id +
+                             '/environments/' + systemObj.environments[0].name)
             .expect(200).endAsync();
         })
         .then(function(res) {
@@ -287,7 +287,7 @@ describe('System CRUD tests', function() {
             done();
         })
         .catch(console.error);
-    })
+    });
 
     afterEach(function(done) {
         User.remove().exec();
