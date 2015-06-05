@@ -5,9 +5,10 @@
  */
 var _ = require('lodash'),
     errorHandler = require('../errors.server.controller'),
+    github = require('octonode'),
     mongoose = require('mongoose'),
     passport = require('passport'),
-    rp = require('request-promise'),
+    Promise = require('bluebird'),
     User = mongoose.model('User');
 
 /**
@@ -106,18 +107,11 @@ exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
         // If the provider is Github, we must also fetch the user's organizations
         var organizations = [];
         if(providerUserProfile.provider === 'github') {
-            var orgUrl = providerUserProfile.providerData.organizations_url;
             var accessToken = providerUserProfile.providerData.accessToken;
-            var orgRequestOptions = {
-                uri: orgUrl,
-                headers: {
-                    'User-Agent': 'fromgit',
-                    'Accept': 'application/vnd.github.moondragon+json',
-                    'Authorization': 'token ' + accessToken
-                }
-            };
-            rp.get(orgRequestOptions).then(console.dir).catch(console.error);
-            console.log('waiting for orgUrl data');
+            var client = github.client(accessToken);
+            var ghme = client.me();
+            Promise.promisifyAll(ghme);
+            ghme.orgsAsync().then(console.dir).catch(console.error);
         }
 
         // Define a search query fields
