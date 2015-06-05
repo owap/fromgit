@@ -104,16 +104,6 @@ exports.oauthCallback = function(strategy) {
 exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
     if (!req.user) {
 
-        // If the provider is Github, we must also fetch the user's organizations
-        var organizations = [];
-        if(providerUserProfile.provider === 'github') {
-            var accessToken = providerUserProfile.providerData.accessToken;
-            var client = github.client(accessToken);
-            var ghme = client.me();
-            Promise.promisifyAll(ghme);
-            ghme.orgsAsync().then(console.dir).catch(console.error);
-        }
-
         // Define a search query fields
         var searchMainProviderIdentifierField = 'providerData.' + providerUserProfile.providerIdentifierField;
         var searchAdditionalProviderIdentifierField = 'additionalProvidersData.' + providerUserProfile.provider + '.' + providerUserProfile.providerIdentifierField;
@@ -136,27 +126,44 @@ exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
             if (err) {
                 return done(err);
             } else {
-                if (!user) {
-                    var possibleUsername = providerUserProfile.username || ((providerUserProfile.email) ? providerUserProfile.email.split('@')[0] : '');
+                // Function for saving user information in the database
+                var createUserCallback = function(organizations){
+                    if (!user) {
+                        var possibleUsername = providerUserProfile.username || ((providerUserProfile.email) ? providerUserProfile.email.split('@')[0] : '');
 
-                    User.findUniqueUsername(possibleUsername, null, function(availableUsername) {
-                        user = new User({
-                            firstName: providerUserProfile.firstName,
-                            lastName: providerUserProfile.lastName,
-                            username: availableUsername,
-                            displayName: providerUserProfile.displayName,
-                            email: providerUserProfile.email,
-                            provider: providerUserProfile.provider,
-                            providerData: providerUserProfile.providerData
-                        });
+                        User.findUniqueUsername(possibleUsername, null, function(availableUsername) {
+                            user = new User({
+                                firstName: providerUserProfile.firstName,
+                                lastName: providerUserProfile.lastName,
+                                username: availableUsername,
+                                displayName: providerUserProfile.displayName,
+                                email: providerUserProfile.email,
+                                provider: providerUserProfile.provider,
+                                providerData: providerUserProfile.providerData,
+                                organizations: organizations || []
+                            });
 
-                        // And save the user
-                        user.save(function(err) {
-                            return done(err, user);
+                            // And save the user
+                            user.save(function(err) {
+                                return done(err, user);
+                            });
                         });
-                    });
+                    } else {
+                        return done(err, user);
+                    }
+                };
+
+                // If the provider is Github, we must also fetch the user's organizations
+                if(providerUserProfile.provider === 'github') {
+                    var accessToken = providerUserProfile.providerData.accessToken;
+                    var client = github.client(accessToken);
+                    var ghme = client.me();
+                    Promise.promisifyAll(ghme);
+                    ghme.orgsAsync().then(function(orgs){
+                        return createUserCallback(orgs[0]);
+                    }).catch(console.error);
                 } else {
-                    return done(err, user);
+                    return createUserCallback();
                 }
             }
         });
