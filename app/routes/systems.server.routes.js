@@ -10,10 +10,14 @@ module.exports = function(app) {
         .post(users.requiresLogin, systems.create);
 
     app.route('/systems/:systemId')
-        .get(systems.read)
+        .get(users.requiresLogin, systems.hasAuthorization, systems.read)
         .put(users.requiresLogin, systems.hasAuthorization, systems.update)
         .delete(users.requiresLogin, systems.hasAuthorization, systems.delete);
 
+    app.route('/systems/:systemId/environments/:environmentName')
+        .get(users.requiresLogin, systems.hasAuthorization, systems.getEnvironment);
+
     // Finish by binding the System middleware
     app.param('systemId', systems.systemByID);
+    app.param('environmentName', systems.environmentByName);
 };

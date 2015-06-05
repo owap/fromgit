@@ -72,7 +72,7 @@ exports.delete = function(req, res) {
 /**
  * List of Systems
  */
-exports.list = function(req, res) { 
+exports.list = function(req, res) {
     System.find().sort('-created').populate('user', 'displayName').exec(function(err, systems) {
         if (err) {
             return res.status(400).send({
@@ -84,16 +84,28 @@ exports.list = function(req, res) {
     });
 };
 
+exports.getEnvironment = function(req, res){
+    res.jsonp(req.environment);
+};
+
 /**
  * System middleware
  */
-exports.systemByID = function(req, res, next, id) { 
+exports.systemByID = function(req, res, next, id) {
     System.findById(id).populate('user', 'displayName').exec(function(err, system) {
         if (err) return next(err);
         if (! system) return next(new Error('Failed to load System ' + id));
-        req.system = system ;
+        req.system = system;
         next();
     });
+};
+exports.environmentByName = function(req, res, next, envName) {
+    var environments = req.system.environments;
+    var filteredEnviornments = environments ?
+        _.filter(environments, function(env){ return env.name === envName; }) :
+        [];
+    req.environment = filteredEnviornments[0] || [];
+    next();
 };
 
 /**
