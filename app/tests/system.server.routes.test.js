@@ -6,8 +6,15 @@ var should = require('should'),
     mongoose = require('mongoose'),
     User = mongoose.model('User'),
     System = mongoose.model('System'),
+    Promise = require('bluebird'),
     agent = request.agent(app);
 
+Promise.promisifyAll(request);
+Promise.promisifyAll(agent);
+Promise.promisifyAll(User);
+Promise.promisifyAll(User.prototype);
+Promise.promisifyAll(System);
+Promise.promisifyAll(System.prototype);
 /**
  * Globals
  */
@@ -36,13 +43,16 @@ describe('System CRUD tests', function() {
         });
 
         // Save a user to the test db and create new System
-        user.save(function() {
+        user.saveAsync().then(function() {
+            var environments = [
+                { name: 'TestEnv1' },
+                { name: 'TestEnv2' }
+            ];
             system = {
-                name: 'System Name'
+                name: 'System Name',
+                environments: environments
             };
-
-            done();
-        });
+        }).then(done).catch(console.error);
     });
 
     it('should be able to save System instance if logged in', function(done) {
@@ -115,7 +125,7 @@ describe('System CRUD tests', function() {
                     .end(function(systemSaveErr, systemSaveRes) {
                         // Set message assertion
                         (systemSaveRes.body.message).should.match('Please fill System name');
-                        
+
                         // Handle System save error
                         done(systemSaveErr);
                     });
@@ -183,20 +193,21 @@ describe('System CRUD tests', function() {
     });
 
 
-    it('should be able to get a single System if not signed in', function(done) {
+    it('should not be able to get a single System if not signed in', function(done) {
         // Create new System model instance
         var systemObj = new System(system);
 
         // Save the System
         systemObj.save(function() {
             request(app).get('/systems/' + systemObj._id)
-                .end(function(req, res) {
-                    // Set assertion
-                    res.body.should.be.an.Object.with.property('name', system.name);
+            .expect(401)
+            .end(function(systemDeleteErr, systemDeleteRes) {
+                // Set message assertion
+                (systemDeleteRes.body.message).should.match('User is not logged in');
 
-                    // Call the assertion callback
-                    done();
-                });
+                // Handle System error error
+                done(systemDeleteErr);
+            });
         });
     });
 
@@ -238,7 +249,7 @@ describe('System CRUD tests', function() {
     });
 
     it('should not be able to delete System instance if not signed in', function(done) {
-        // Set System user 
+        // Set System user
         system.user = user;
 
         // Create new System model instance
@@ -259,6 +270,24 @@ describe('System CRUD tests', function() {
 
         });
     });
+
+    it('should be able to query environments associated with systems', function(done){
+        system.user = user;
+        var systemObj = new System(system);
+        systemObj.saveAsync().then(function(){
+            return agent.post('/auth/signin').send(credentials).expect(200).endAsync();
+        })
+        .then(function(signinRes){
+            return agent.get('/systems/' + systemObj._id
+                           + '/environments/' + systemObj.environments[0].name)
+            .expect(200).endAsync();
+        })
+        .then(function(res) {
+            res.body.should.be.an.Object.and.have.property('name', 'TestEnv1');
+            done();
+        })
+        .catch(console.error);
+    })
 
     afterEach(function(done) {
         User.remove().exec();
