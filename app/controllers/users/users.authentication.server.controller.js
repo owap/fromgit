@@ -98,7 +98,7 @@ exports.oauthCallback = function(strategy) {
     };
 };
 
-exports.createUserCallback = function(err, user, providerUserProfile, organizations, callback) {
+function createUserCallback(err, user, providerUserProfile, organizations, callback) {
     if (!user) {
         var possibleUsername = providerUserProfile.username || ((providerUserProfile.email) ? providerUserProfile.email.split('@')[0] : '');
 
@@ -159,10 +159,10 @@ exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
                     var ghme = client.me();
                     Promise.promisifyAll(ghme);
                     ghme.orgsAsync().then(function(orgs){
-                        return exports.createUserCallback(err, user, providerUserProfile, orgs[0], done);
+                        return createUserCallback(err, user, providerUserProfile, orgs[0], done);
                     }).catch(console.error);
                 } else {
-                    return exports.createUserCallback(err, user, providerUserProfile, null, done);
+                    return createUserCallback(err, user, providerUserProfile, null, done);
                 }
             }
         });
