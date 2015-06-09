@@ -98,8 +98,34 @@ exports.oauthCallback = function(strategy) {
     };
 };
 
+exports.createUserCallback = function(err, user, providerUserProfile, organizations, callback) {
+    if (!user) {
+        var possibleUsername = providerUserProfile.username || ((providerUserProfile.email) ? providerUserProfile.email.split('@')[0] : '');
+
+        User.findUniqueUsername(possibleUsername, null, function(availableUsername) {
+            user = new User({
+                firstName: providerUserProfile.firstName,
+                lastName: providerUserProfile.lastName,
+                username: availableUsername,
+                displayName: providerUserProfile.displayName,
+                email: providerUserProfile.email,
+                provider: providerUserProfile.provider,
+                providerData: providerUserProfile.providerData,
+                organizations: organizations || []
+            });
+
+            // And save the user
+            user.save(function(err) {
+                return callback(err, user);
+            });
+        });
+    } else {
+        return callback(err, user);
+    }
+};
+
 /**
- * Helper function to save or update a OAuth user profile
+* Helper function to save or update a OAuth user profile
  */
 exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
     if (!req.user) {
@@ -126,33 +152,6 @@ exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
             if (err) {
                 return done(err);
             } else {
-                // Function for saving user information in the database
-                var createUserCallback = function(organizations){
-                    if (!user) {
-                        var possibleUsername = providerUserProfile.username || ((providerUserProfile.email) ? providerUserProfile.email.split('@')[0] : '');
-
-                        User.findUniqueUsername(possibleUsername, null, function(availableUsername) {
-                            user = new User({
-                                firstName: providerUserProfile.firstName,
-                                lastName: providerUserProfile.lastName,
-                                username: availableUsername,
-                                displayName: providerUserProfile.displayName,
-                                email: providerUserProfile.email,
-                                provider: providerUserProfile.provider,
-                                providerData: providerUserProfile.providerData,
-                                organizations: organizations || []
-                            });
-
-                            // And save the user
-                            user.save(function(err) {
-                                return done(err, user);
-                            });
-                        });
-                    } else {
-                        return done(err, user);
-                    }
-                };
-
                 // If the provider is Github, we must also fetch the user's organizations
                 if(providerUserProfile.provider === 'github') {
                     var accessToken = providerUserProfile.providerData.accessToken;
@@ -160,10 +159,10 @@ exports.saveOAuthUserProfile = function(req, providerUserProfile, done) {
                     var ghme = client.me();
                     Promise.promisifyAll(ghme);
                     ghme.orgsAsync().then(function(orgs){
-                        return createUserCallback(orgs[0]);
+                        return exports.createUserCallback(err, user, providerUserProfile, orgs[0], done);
                     }).catch(console.error);
                 } else {
-                    return createUserCallback();
+                    return exports.createUserCallback(err, user, providerUserProfile, null, done);
                 }
             }
         });
